@@ -2,8 +2,8 @@ import argparse
 import logging
 import sys
 
-from webapp.opencv import image_processing as ImageProcessing
-from webapp.opencv import image_manipulation as ImageManipulation
+from app.opencv import image_processing as ImageProcessing
+from app.opencv import image_manipulation as ImageManipulation
 
 
 # Config
