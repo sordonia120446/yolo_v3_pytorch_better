@@ -1,11 +1,12 @@
-from __future__ import print_function
-import sys
+# from __future__ import print_function
+import os
+import sys  # sometimes used
 
 import time
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from torchvision import datasets, transforms
+from torchvision import transforms
 import gc
 
 import dataset
@@ -52,6 +53,7 @@ def load_testlist(testlist):
         batch_size=batch_size, shuffle=False, **kwargs)
     return loader
 
+
 def main():
     datacfg    = FLAGS.data
     cfgfile    = FLAGS.config
@@ -62,7 +64,8 @@ def main():
     net_options   = parse_cfg(cfgfile)[0]
 
     global use_cuda
-    use_cuda = torch.cuda.is_available() and (True if use_cuda is None else use_cuda)
+    # use_cuda = torch.cuda.is_available() and (True if use_cuda is None else use_cuda)
+    use_cuda = torch.cuda.is_available()
 
     globals()["trainlist"]     = data_options['train']
     globals()["testlist"]      = data_options['valid']
@@ -79,7 +82,7 @@ def main():
     globals()["steps"]         = [float(step) for step in net_options['steps'].split(',')]
     globals()["scales"]        = [float(scale) for scale in net_options['scales'].split(',')]
 
-    #Train parameters
+    # Train parameters
     global max_epochs
     try:
         max_epochs = int(net_options['max_epochs'])
@@ -128,9 +131,13 @@ def main():
         else:
             params += [{'params': [value], 'weight_decay': decay*batch_size}]
     global optimizer
-    optimizer = optim.SGD(model.parameters(), 
-                        lr=learning_rate/batch_size, momentum=momentum, 
-                        dampening=0, weight_decay=decay*batch_size)
+    optimizer = optim.SGD(
+        model.parameters(),
+        lr=learning_rate/batch_size,
+        momentum=momentum,
+        dampening=0,
+        weight_decay=decay * batch_size
+    )
 
     if evaluate:
         logging('evaluating ...')
@@ -160,7 +167,7 @@ def main():
         except KeyboardInterrupt:
             print('='*80)
             print('Exiting from training by interrupt')
-                
+
 def adjust_learning_rate(optimizer, batch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     lr = learning_rate
@@ -195,8 +202,8 @@ def train(epoch):
                         shuffle=True,
                         transform=transforms.Compose([
                             transforms.ToTensor(),
-                        ]), 
-                        train=True, 
+                        ]),
+                        train=True,
                         seen=cur_model.seen,
                         batch_size=batch_size,
                         num_workers=num_workers),
@@ -228,7 +235,7 @@ def train(epoch):
         org_loss = []
         for i, l in enumerate(loss_layers):
             l.seen = l.seen + data.data.size(0)
-            ol=l(output[i]['x'], target)
+            ol = l(output[i]['x'], target)
             org_loss.append(ol)
 
         t7 = time.time()
@@ -244,8 +251,9 @@ def train(epoch):
 
         t8 = time.time()
         optimizer.step()
-        
+
         t9 = time.time()
+        # change to True?
         if False and batch_idx > 1:
             avg_time[0] = avg_time[0] + (t2-t1)
             avg_time[1] = avg_time[1] + (t3-t2)
@@ -276,7 +284,8 @@ def train(epoch):
     nsamples = len(train_loader.dataset)
     logging('training with %f samples/s' % (nsamples/(t1-t0)))
     return nsamples
-    
+
+
 def savemodel(epoch, nsamples, curmax=False):
     cur_model = curmodel()
     if curmax:
@@ -284,7 +293,7 @@ def savemodel(epoch, nsamples, curmax=False):
     else:
         logging('save weights to %s/%06d.weights' % (backupdir, epoch))
     cur_model.seen = epoch * nsamples
-    if curmax: 
+    if curmax:
         cur_model.save_weights('%s/localmax.weights' % (backupdir))
     else:
         cur_model.save_weights('%s/%06d.weights' % (backupdir, epoch))
@@ -293,6 +302,7 @@ def savemodel(epoch, nsamples, curmax=False):
             os.remove(old_wgts)
         except OSError:
             pass
+
 
 def test(epoch):
     def truths_length(truths):
@@ -333,7 +343,7 @@ def test(epoch):
                     # pred_boxes and gt_boxes are transposed for torch.max
                     if best_iou > iou_thresh and pred_boxes[6][best_j] == gt_boxes[6][0]:
                         correct += 1
-                        
+
     precision = 1.0*correct/(proposals+eps)
     recall = 1.0*correct/(total+eps)
     fscore = 2.0*precision*recall/(precision+recall+eps)

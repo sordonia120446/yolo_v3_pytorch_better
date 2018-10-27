@@ -1,21 +1,22 @@
-import sys
 import os
 import time
 import math
 import torch
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
-import itertools
-import struct # get_image_size
-import imghdr # get_image_size
+from PIL import Image, ImageDraw
+import struct  # get_image_size
+import imghdr  # get_image_size
+
 
 def sigmoid(x):
     return 1.0/(math.exp(-x)+1.)
+
 
 def softmax(x):
     x = torch.exp(x - torch.max(x))
     x = x/x.sum()
     return x
+
 
 def bbox_iou(box1, box2, x1y1x2y2=True):
     if x1y1x2y2:
@@ -47,6 +48,7 @@ def bbox_iou(box1, box2, x1y1x2y2=True):
     uarea = area1 + area2 - carea
     return float(carea/uarea)
 
+
 def multi_bbox_ious(boxes1, boxes2, x1y1x2y2=True):
     if x1y1x2y2:
         x1_min = torch.min(boxes1[0], boxes2[0])
@@ -75,15 +77,16 @@ def multi_bbox_ious(boxes1, boxes2, x1y1x2y2=True):
     uarea = area1 + area2 - carea
     return carea/uarea
 
+
 def nms(boxes, nms_thresh):
     if len(boxes) == 0:
         return boxes
 
     det_confs = torch.zeros(len(boxes))
     for i in range(len(boxes)):
-        det_confs[i] = 1-boxes[i][4]                
+        det_confs[i] = 1-boxes[i][4]
 
-    _,sortIds = torch.sort(det_confs)
+    _, sortIds = torch.sort(det_confs)
     out_boxes = []
     for i in range(len(boxes)):
         box_i = boxes[sortIds[i]]
@@ -96,11 +99,14 @@ def nms(boxes, nms_thresh):
                     box_j[4] = 0
     return out_boxes
 
+
 def convert2cpu(gpu_matrix):
     return torch.FloatTensor(gpu_matrix.size()).copy_(gpu_matrix)
 
+
 def convert2cpu_long(gpu_matrix):
     return torch.LongTensor(gpu_matrix.size()).copy_(gpu_matrix)
+
 
 def get_all_boxes(output, conf_thresh, num_classes, only_objectness=1, validation=False, use_cuda=True):
     # total number of inputs (batch size)
@@ -110,7 +116,7 @@ def get_all_boxes(output, conf_thresh, num_classes, only_objectness=1, validatio
     for i in range(len(output)):
         pred = output[i]['x'].data
 
-        # find number of workers (.s.t, number of GPUS) 
+        # find number of workers (.s.t, number of GPUS)
         nw = output[i]['n'].data.size(0)
         anchors = output[i]['a'].chunk(nw)[0]
         num_anchors = output[i]['n'].data[0].item()
@@ -120,6 +126,7 @@ def get_all_boxes(output, conf_thresh, num_classes, only_objectness=1, validatio
         for t in range(tot):
             all_boxes[t] += b[t]
     return all_boxes
+
 
 def get_region_boxes(output, conf_thresh, num_classes, anchors, num_anchors, only_objectness=1, validation=False, use_cuda=True):
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -153,7 +160,7 @@ def get_region_boxes(output, conf_thresh, num_classes, anchors, num_anchors, onl
     cls_max_confs = cls_max_confs.view(-1)
     cls_max_ids = cls_max_ids.view(-1)
     t1 = time.time()
-    
+
     sz_hw = h*w
     sz_hwa = sz_hw*num_anchors
     det_confs = convert2cpu(det_confs)
@@ -176,7 +183,7 @@ def get_region_boxes(output, conf_thresh, num_classes, anchors, num_anchors, onl
                         conf = det_confs[ind]
                     else:
                         conf = det_confs[ind] * cls_max_confs[ind]
-    
+
                     if conf > conf_thresh:
                         bcx = xs[ind]
                         bcy = ys[ind]
@@ -201,6 +208,7 @@ def get_region_boxes(output, conf_thresh, num_classes, anchors, num_anchors, onl
         print('      boxes filter : %f' % (t3-t2))
         print('---------------------------------')
     return all_boxes
+
 
 def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
     import cv2
@@ -244,6 +252,7 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
         cv2.imwrite(savename, img)
     return img
 
+
 def plot_boxes(img, boxes, savename=None, class_names=None):
     colors = torch.FloatTensor([[1,0,1],[0,0,1],[0,1,1],[0,1,0],[1,1,0],[1,0,0]])
     def get_color(c, x, max_val):
@@ -283,6 +292,7 @@ def plot_boxes(img, boxes, savename=None, class_names=None):
         img.save(savename)
     return img
 
+
 def read_truths(lab_path):
     if not os.path.exists(lab_path):
         return np.array([])
@@ -292,6 +302,7 @@ def read_truths(lab_path):
         return truths
     else:
         return np.array([])
+
 
 def read_truths_args(lab_path, min_box_scale):
     truths = read_truths(lab_path)
@@ -310,6 +321,7 @@ def load_class_names(namesfile):
         class_names.append(line.strip())
     return class_names
 
+
 def image2torch(img):
     if isinstance(img, Image.Image):
         width = img.width
@@ -325,6 +337,7 @@ def image2torch(img):
         exit(-1)
     return img
 
+
 import types
 def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=True):
     model.eval()
@@ -337,7 +350,7 @@ def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=True):
 
     out_boxes = model(img)
     boxes = get_all_boxes(out_boxes, conf_thresh, model.num_classes, use_cuda=use_cuda)[0]
-    
+
     t3 = time.time()
     boxes = nms(boxes, nms_thresh)
     t4 = time.time()
@@ -378,7 +391,7 @@ def scale_bboxes(bboxes, width, height):
         dets[i][2] = dets[i][2] * width
         dets[i][3] = dets[i][3] * height
     return dets
-      
+
 def file_lines(thefilepath):
     count = 0
     thefile = open(thefilepath, 'rb')
@@ -395,7 +408,7 @@ def get_image_size(fname):
     from draco'''
     with open(fname, 'rb') as fhandle:
         head = fhandle.read(24)
-        if len(head) != 24: 
+        if len(head) != 24:
             return
         if imghdr.what(fname) == 'png':
             check = struct.unpack('>i', head[4:8])[0]
@@ -407,15 +420,15 @@ def get_image_size(fname):
         elif imghdr.what(fname) == 'jpeg' or imghdr.what(fname) == 'jpg':
             try:
                 fhandle.seek(0) # Read 0xff next
-                size = 2 
-                ftype = 0 
+                size = 2
+                ftype = 0
                 while not 0xc0 <= ftype <= 0xcf:
                     fhandle.seek(size, 1)
                     byte = fhandle.read(1)
                     while ord(byte) == 0xff:
                         byte = fhandle.read(1)
                     ftype = ord(byte)
-                    size = struct.unpack('>H', fhandle.read(2))[0] - 2 
+                    size = struct.unpack('>H', fhandle.read(2))[0] - 2
                 # We are at a SOFn block
                 fhandle.seek(1, 1)  # Skip `precision' byte.
                 height, width = struct.unpack('>HH', fhandle.read(4))
