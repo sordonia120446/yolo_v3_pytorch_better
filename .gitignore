@@ -120,4 +120,3 @@ ENV/
 # Project-specific
 yolov3.weights
 yolo_output/
-
