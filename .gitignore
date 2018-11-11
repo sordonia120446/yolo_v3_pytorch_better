@@ -120,3 +120,11 @@ ENV/
 # Project-specific
 yolov3.weights
 yolo_output/
+
+# Pascal VOC
+*.tar
+VOCdevkit/
+savelog.txt
+2007*.txt
+2012*.txt
+voc_train.txt
