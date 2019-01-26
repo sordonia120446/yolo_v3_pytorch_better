@@ -120,6 +120,7 @@ ENV/
 # Project-specific
 yolov3.weights
 yolo_output/
+backup
 
 # Pascal VOC
 *.tar
@@ -128,3 +129,7 @@ savelog.txt
 2007*.txt
 2012*.txt
 voc_train.txt
+
+# CARPK & PUCPR
+data/CARPK_devkit/
+data/PUCPR+_devkit/

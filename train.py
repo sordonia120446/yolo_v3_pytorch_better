@@ -1,6 +1,4 @@
-# from __future__ import print_function
 import os
-import sys  # sometimes used
 
 import time
 import torch
@@ -27,7 +25,6 @@ eps           = 1e-5
 keep_backup   = 5
 save_interval = 5  # epoches
 test_interval = 10  # epoches
-dot_interval  = 70  # batches
 
 # Test parameters
 evaluate = False
@@ -38,6 +35,7 @@ iou_thresh    = 0.5
 # no test evalulation
 no_eval = False
 
+
 # Training settings
 def load_testlist(testlist):
     init_width = model.width
@@ -45,12 +43,15 @@ def load_testlist(testlist):
 
     kwargs = {'num_workers': num_workers, 'pin_memory': True} if use_cuda else {}
     loader = torch.utils.data.DataLoader(
-        dataset.listDataset(testlist, shape=(init_width, init_height),
-                       shuffle=False,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                       ]), train=False),
-        batch_size=batch_size, shuffle=False, **kwargs)
+        dataset.listDataset(
+            testlist,
+            shape=(init_width, init_height),
+            shuffle=False,
+            transform=transforms.Compose([transforms.ToTensor(),]),
+            train=False),
+        batch_size=batch_size,
+        shuffle=False,
+        **kwargs)
     return loader
 
 
@@ -64,7 +65,6 @@ def main():
     net_options   = parse_cfg(cfgfile)[0]
 
     global use_cuda
-    # use_cuda = torch.cuda.is_available() and (True if use_cuda is None else use_cuda)
     use_cuda = torch.cuda.is_available()
 
     globals()["trainlist"]     = data_options['train']
@@ -88,7 +88,8 @@ def main():
         max_epochs = int(net_options['max_epochs'])
     except KeyError:
         nsamples = file_lines(trainlist)
-        max_epochs = (max_batches*batch_size)//nsamples+1
+        default_max_epochs = (max_batches*batch_size)//nsamples+1
+        max_epochs = int(os.getenv('MAX_EPOCHS', default_max_epochs))
 
     seed = int(time.time())
     torch.manual_seed(seed)
@@ -153,6 +154,9 @@ def main():
             else:
                 mfscore = 0.5
             for epoch in range(init_epoch+1, max_epochs):
+                epoch_start_time = time.time()
+
+                # train or intermittent eval
                 nsamples = train(epoch)
                 if not no_eval and epoch > test_interval and (epoch%test_interval) == 0:
                     print('>> intermittent evaluating ...')
@@ -163,10 +167,15 @@ def main():
                 if FLAGS.localmax and fscore > mfscore:
                     mfscore = fscore
                     savemodel(epoch, nsamples, True)
+
+                epoch_end_time = time.time()
+                elapsed_time = round((epoch_end_time - epoch_start_time) / 60, 2)
+                print('Epoch training: {} minutes'.format(elapsed_time))
                 print('-'*90)
         except KeyboardInterrupt:
             print('='*80)
             print('Exiting from training by interrupt')
+
 
 def adjust_learning_rate(optimizer, batch):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
@@ -197,17 +206,17 @@ def train(epoch):
     init_width = cur_model.width
     init_height = cur_model.height
     kwargs = {'num_workers': num_workers, 'pin_memory': True} if use_cuda else {}
-    train_loader = torch.utils.data.DataLoader(
-        dataset.listDataset(trainlist, shape=(init_width, init_height),
-                        shuffle=True,
-                        transform=transforms.Compose([
-                            transforms.ToTensor(),
-                        ]),
-                        train=True,
-                        seen=cur_model.seen,
-                        batch_size=batch_size,
-                        num_workers=num_workers),
-                        batch_size=batch_size, shuffle=False, **kwargs)
+    train_loader = torch.utils.data.DataLoader(dataset.listDataset(
+        trainlist, shape=(init_width, init_height),
+        shuffle=True,
+        transform=transforms.Compose([
+            transforms.ToTensor(),
+        ]),
+        train=True,
+        seen=cur_model.seen,
+        batch_size=batch_size,
+        num_workers=num_workers
+    ), batch_size=batch_size, shuffle=False, **kwargs)
 
     processed_batches = cur_model.seen//batch_size
     lr = adjust_learning_rate(optimizer, processed_batches)
@@ -219,8 +228,6 @@ def train(epoch):
         t2 = time.time()
         adjust_learning_rate(optimizer, processed_batches)
         processed_batches = processed_batches + 1
-        #if (batch_idx+1) % dot_interval == 0:
-        #    sys.stdout.write('.')
 
         t3 = time.time()
         data, target = data.to(device), target.to(device)
@@ -367,4 +374,3 @@ if __name__ == '__main__':
 
     FLAGS, _ = parser.parse_known_args()
     main()
-

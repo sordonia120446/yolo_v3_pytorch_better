@@ -1,0 +1,5 @@
+train  = data/CARPK_devkit/data/CARPK_devkit_train.txt
+valid  = data/CARPK_devkit/data/CARPK_devkit_test.txt
+names = data/sam.names
+backup = backup
+gpus  = 0,1,2,3

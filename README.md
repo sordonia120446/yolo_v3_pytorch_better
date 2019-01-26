@@ -43,6 +43,10 @@ You might want to remove the training data. Maybe something just went awry or wh
 make clean-voc
 ```
 
+## Training
+
+Be sure to define `max_epochs` in the `.cfg` file of the model being trained. There is also the option to add it as an environment variable `MAX_EPOCHS`.
+
 ## Additional Notes from Alex Guy
 
 ### Difference between this repository and marvis original version.
