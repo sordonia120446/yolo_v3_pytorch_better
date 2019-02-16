@@ -1,11 +1,16 @@
-import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from cfg import *
 import numpy as np
-from region_layer import RegionLayer
-from yolo_layer import YoloLayer
+
+try:
+    from app.object_detection.cfg import *
+    from app.object_detection.region_layer import RegionLayer
+    from app.object_detection.yolo_layer import YoloLayer
+except ModuleNotFoundError:
+    from cfg import *
+    from region_layer import RegionLayer
+    from yolo_layer import YoloLayer
 #from layers.batchnorm.bn import BN2d
 
 class MaxPoolStride1(nn.Module):

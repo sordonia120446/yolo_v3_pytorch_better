@@ -1,6 +1,7 @@
 import os
 import time
 import math
+
 import torch
 import numpy as np
 from PIL import Image, ImageDraw
@@ -313,6 +314,7 @@ def read_truths_args(lab_path, min_box_scale):
         new_truths.append([truths[i][0], truths[i][1], truths[i][2], truths[i][3], truths[i][4]])
     return np.array(new_truths)
 
+
 def load_class_names(namesfile):
     class_names = []
     with open(namesfile, 'r', encoding='utf8') as fp:
@@ -365,6 +367,7 @@ def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=True):
         print('-----------------------------------')
     return boxes
 
+
 def read_data_cfg(datacfg):
     options = dict()
     options['gpus'] = '0,1,2,3'
@@ -382,6 +385,7 @@ def read_data_cfg(datacfg):
         options[key] = value
     return options
 
+
 def scale_bboxes(bboxes, width, height):
     import copy
     dets = copy.deepcopy(bboxes)
@@ -391,6 +395,7 @@ def scale_bboxes(bboxes, width, height):
         dets[i][2] = dets[i][2] * width
         dets[i][3] = dets[i][3] * height
     return dets
+
 
 def file_lines(thefilepath):
     count = 0
@@ -402,6 +407,7 @@ def file_lines(thefilepath):
         count += buffer.count(b'\n')
     thefile.close( )
     return count
+
 
 def get_image_size(fname):
     '''Determine the image type of fhandle and return its size.
@@ -438,8 +444,10 @@ def get_image_size(fname):
             return
         return width, height
 
+
 def logging(message):
     print('%s %s' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), message))
+
 
 def savelog(message):
     logging(message)

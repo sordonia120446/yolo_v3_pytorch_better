@@ -119,6 +119,7 @@ ENV/
 
 # Project-specific
 yolov3.weights
+darknet53.conv.74
 yolo_output/
 backup
 
@@ -131,5 +132,5 @@ savelog.txt
 voc_train.txt
 
 # CARPK & PUCPR
-data/CARPK_devkit/
-data/PUCPR+_devkit/
+CARPK_devkit/
+PUCPR+_devkit/

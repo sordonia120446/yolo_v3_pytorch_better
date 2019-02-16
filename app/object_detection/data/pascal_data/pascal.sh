@@ -16,8 +16,10 @@ find . -type f -name "2007_*.txt" -exec mv -t "$DATA_DIR/" {} +
 
 echo 'Generate Labels for VOC'
 wget -N --directory-prefix=$DATA_DIR http://pjreddie.com/media/files/voc_label.py
-python "$DATA_DIR/voc_label.py"
+python "$DATA_DIR/voc_better_label.py"
 cat "$DATA_DIR/2007_train.txt" > "$DATA_DIR/voc_train.txt"
 cat "$DATA_DIR/2007_val.txt" >> "$DATA_DIR/voc_train.txt"
 cat "$DATA_DIR/2012_train.txt" >> "$DATA_DIR/voc_train.txt"
 cat "$DATA_DIR/2012_val.txt" >> "$DATA_DIR/voc_train.txt"
+
+echo "Labeling complete. Check $DATA_DIR to make sure everything is stored there correctly."

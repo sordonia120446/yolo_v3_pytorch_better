@@ -2,17 +2,20 @@
 # encoding: utf-8
 import random
 import os
+
 from PIL import Image, ImageFile
 import numpy as np
 
 # to avoid image file truncation error
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+
 def scale_image_channel(im, c, v):
     cs = list(im.split())
     cs[c] = cs[c].point(lambda i: i * v)
     out = Image.merge(im.mode, tuple(cs))
     return out
+
 
 def distort_image(im, hue, sat, val):
     im = im.convert('HSV')
@@ -34,11 +37,13 @@ def distort_image(im, hue, sat, val):
     #constrain_image(im)
     return im
 
+
 def rand_scale(s):
     scale = random.uniform(1, s)
     if(random.randint(1,10000)%2):
         return scale
     return 1./scale
+
 
 def random_distort_image(im, hue, saturation, exposure):
     dhue = random.uniform(-hue, hue)
@@ -46,6 +51,7 @@ def random_distort_image(im, hue, saturation, exposure):
     dexp = rand_scale(exposure)
     res = distort_image(im, dhue, dsat, dexp)
     return res
+
 
 def data_augmentation(img, shape, jitter, hue, saturation, exposure):
     oh = img.height
@@ -118,8 +124,14 @@ def fill_truth_detection(label_path, w, h, flip, dx, dy, sx, sy):
     label = np.reshape(label, (-1))
     return label
 
+
+def _get_label_path(imgpath):
+    """Jenky but works. Expects the same file structure for labels as the images."""
+    return imgpath.replace('images', 'labels').replace('JPEGImages', 'labels').replace('Images', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
+
+
 def load_data_detection(imgpath, shape, jitter, hue, saturation, exposure):
-    label_path = imgpath.replace('images', 'labels').replace('Images', 'labels').replace('JPEGImages', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
+    label_path = _get_label_path(imgpath)
 
     ## data augmentation
     img = Image.open(imgpath).convert('RGB')

@@ -1,17 +1,31 @@
+import argparse
 import os
-
 import time
+
+import numpy as np
 import torch
 import torch.optim as optim
 import torch.nn as nn
 from torchvision import transforms
 import gc
 
-import dataset
-from utils import *
-from cfg import parse_cfg
-from darknet import Darknet
-import argparse
+try:
+    from app.object_detection import dataset
+    from app.object_detection.utils import (
+        multi_bbox_ious, nms, get_all_boxes,
+        read_data_cfg, file_lines, logging, savelog
+    )
+    from app.object_detection.cfg import parse_cfg
+    from app.object_detection.darknet import Darknet
+except ModuleNotFoundError:
+    import dataset
+    from utils import (
+        multi_bbox_ious, nms, get_all_boxes,
+        read_data_cfg, file_lines, logging, savelog
+    )
+    from cfg import parse_cfg
+    from darknet import Darknet
+
 
 FLAGS = None
 unparsed = None
@@ -192,17 +206,19 @@ def adjust_learning_rate(optimizer, batch):
         param_group['lr'] = lr/batch_size
     return lr
 
-def curmodel():
+
+def curmodel(model, ngpus=1):
     if ngpus > 1:
         cur_model = model.module
     else:
         cur_model = model
     return cur_model
 
+
 def train(epoch):
     global processed_batches
     t0 = time.time()
-    cur_model = curmodel()
+    cur_model = curmodel(model, ngpus=ngpus)
     init_width = cur_model.width
     init_height = cur_model.height
     kwargs = {'num_workers': num_workers, 'pin_memory': True} if use_cuda else {}
@@ -294,7 +310,7 @@ def train(epoch):
 
 
 def savemodel(epoch, nsamples, curmax=False):
-    cur_model = curmodel()
+    cur_model = curmodel(model, ngpus=ngpus)
     if curmax:
         logging('save local maximum weights to %s/localmax.weights' % (backupdir))
     else:
@@ -319,7 +335,7 @@ def test(epoch):
         return 50
 
     model.eval()
-    cur_model = curmodel()
+    cur_model = curmodel(model, ngpus=ngpus)
     num_classes = cur_model.num_classes
     total       = 0.0
     proposals   = 0.0
@@ -356,6 +372,7 @@ def test(epoch):
     fscore = 2.0*precision*recall/(precision+recall+eps)
     savelog("[%03d] correct: %d, precision: %f, recall: %f, fscore: %f" % (epoch, correct, precision, recall, fscore))
     return fscore
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
