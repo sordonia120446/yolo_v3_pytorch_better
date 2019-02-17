@@ -28,7 +28,7 @@ train:
 
 train-carpk:
 	@echo 'Update training data pathing in the cfg/*.data files'
-	@python train.py -d cfg/carpk.data -c cfg/sam.cfg -w yolov3.weights
+	@python train.py -d cfg/carpk.data -c cfg/carpk.cfg -w yolov3.weights
 
 weights:
 	@echo "Getting YOLO v3 weights" && wget https://pjreddie.com/media/files/yolov3.weights yolo_v3/yolov3.weights

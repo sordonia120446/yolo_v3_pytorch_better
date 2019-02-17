@@ -125,14 +125,31 @@ class Darknet(nn.Module):
                 x = self.models[ind](x)
                 outputs[ind] = x
             elif block['type'] == 'route':
-                layers = block['layers'].split(',')
-                layers = [int(i) if int(i) > 0 else int(i)+ind for i in layers]
+                # layers = block['layers'].split(',')
+                # layers = [int(i) if int(i) > 0 else int(i)+ind for i in layers]
+                # if len(layers) == 1:
+                #     x = outputs[layers[0]]
+                # elif len(layers) == 2:
+                #     x1 = outputs[layers[0]]
+                #     x2 = outputs[layers[1]]
+                #     x = torch.cat((x1, x2), 1)
+
+                # new stuff
+                layers = block["layers"].split(',')
+                layers = [int(a) for a in layers]
+
+                if layers[0] > 0:
+                    layers[0] = layers[0] - ind
+
                 if len(layers) == 1:
-                    x = outputs[layers[0]]
+                    x = outputs[ind + (layers[0])]
                 elif len(layers) == 2:
-                    x1 = outputs[layers[0]]
-                    x2 = outputs[layers[1]]
-                    x = torch.cat((x1,x2),1)
+                    if (layers[1]) > 0:
+                        layers[1] = layers[1] - ind
+
+                    map1 = outputs[ind + layers[0]]
+                    map2 = outputs[ind + layers[1]]
+                    x = torch.cat((map1, map2), 1)
                 outputs[ind] = x
             elif block['type'] == 'shortcut':
                 from_layer = int(block['from'])
@@ -146,9 +163,9 @@ class Darknet(nn.Module):
                 elif activation == 'relu':
                     x = F.relu(x, inplace=True)
                 outputs[ind] = x
-            elif block['type'] in [ 'region', 'yolo']:
+            elif block['type'] in ['region', 'yolo']:
                 boxes = self.models[ind].get_mask_boxes(x)
-                out_boxes[outno]= boxes
+                out_boxes[outno] = boxes
                 outno += 1
                 outputs[ind] = None
             elif block['type'] == 'cost':
@@ -164,7 +181,7 @@ class Darknet(nn.Module):
         models = nn.ModuleList()
 
         prev_filters = 3
-        out_filters =[]
+        out_filters = []
         prev_stride = 1
         out_strides = []
         conv_id = 0

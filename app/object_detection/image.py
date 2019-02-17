@@ -127,7 +127,13 @@ def fill_truth_detection(label_path, w, h, flip, dx, dy, sx, sy):
 
 def _get_label_path(imgpath):
     """Jenky but works. Expects the same file structure for labels as the images."""
-    return imgpath.replace('images', 'labels').replace('JPEGImages', 'labels').replace('Images', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
+    path, filename = os.path.split(imgpath)
+    basename, ext = os.path.splitext(filename)
+    label_path = path.replace('images', 'labels').replace('JPEGImages', 'labels').replace('Images', 'labels')
+    label_ext = {'.png': '.txt', '.jpg': '.txt', '.jpeg': '.txt'}[ext]
+    label_filename = '{}{}'.format(basename, label_ext)
+    label_path = os.path.join(label_path, label_filename)
+    return label_path
 
 
 def load_data_detection(imgpath, shape, jitter, hue, saturation, exposure):

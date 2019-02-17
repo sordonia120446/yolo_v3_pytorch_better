@@ -42,7 +42,7 @@ def convert_annotation(year, image_id):
 
 
 # this should match up with the $DATA_DIR in the pascal.sh file
-wd = os.path.join(getcwd(), 'data/pascal_data')
+wd = os.path.join(getcwd(), 'data', 'pascal_data')
 
 
 for year, image_set in sets:

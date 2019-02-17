@@ -11,6 +11,10 @@ clean-data:
 	@rm -rf opencv_data/
 	@rm -rf test_video/
 
+detect-carpk:
+	@echo "Detecting based on weights trained on CARPK data"
+	@python detect.py cfg/sam.cfg yolov3.weights data/dog-cycle-car.png data/sam.names
+
 opencv:
 	@docker-compose run -e DEBUG vision python opencv.py -h
 

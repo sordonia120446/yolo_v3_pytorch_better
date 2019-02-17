@@ -10,6 +10,7 @@ except ModuleNotFoundError:
     from utils import bbox_iou, multi_bbox_ious, convert2cpu
 
 
+
 class YoloLayer(nn.Module):
     def __init__(self, anchor_mask=[], num_classes=0, anchors=[1.0], num_anchors=1, use_cuda=None):
         super(YoloLayer, self).__init__()
@@ -38,7 +39,7 @@ class YoloLayer(nn.Module):
 
         masked_anchors = torch.FloatTensor(masked_anchors).to(self.device)
         num_anchors = torch.IntTensor([len(self.anchor_mask)]).to(self.device)
-        return {'x':output, 'a':masked_anchors, 'n':num_anchors}
+        return {'x': output, 'a': masked_anchors, 'n': num_anchors}
 
     def build_targets(self, pred_boxes, target, anchors, nA, nH, nW):
         nB = target.size(0)

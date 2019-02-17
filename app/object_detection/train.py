@@ -83,7 +83,7 @@ def main():
 
     globals()["trainlist"]     = data_options['train']
     globals()["testlist"]      = data_options['valid']
-    globals()["backupdir"]     = data_options['backup']
+    globals()["backupdir"]     = data_options['backup']  # where we store weights after training
     globals()["gpus"]          = data_options['gpus']  # e.g. 0,1,2,3
     globals()["ngpus"]         = len(gpus.split(','))
     globals()["num_workers"]   = int(data_options['num_workers'])
@@ -184,7 +184,7 @@ def main():
 
                 epoch_end_time = time.time()
                 elapsed_time = round((epoch_end_time - epoch_start_time) / 60, 2)
-                print('Epoch training: {} minutes'.format(elapsed_time))
+                print('Epoch training duration: {} minutes'.format(elapsed_time))
                 print('-'*90)
         except KeyboardInterrupt:
             print('='*80)
