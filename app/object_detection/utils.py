@@ -347,7 +347,6 @@ def image2torch(img):
     return img
 
 
-import types
 def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=True):
     model.eval()
     t0 = time.time()
@@ -450,13 +449,3 @@ def get_image_size(fname):
         else:
             return
         return width, height
-
-
-def logging(message):
-    print('%s %s' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), message))
-
-
-def savelog(message):
-    logging(message)
-    with open('savelog.txt', 'a') as f:
-        print('%s %s' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), message), file=f)

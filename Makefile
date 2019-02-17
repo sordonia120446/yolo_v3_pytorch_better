@@ -21,6 +21,9 @@ opencv:
 status:
 	@docker stats --no-stream
 
+tensorboard:
+	make -C app/object_detection tensorboard
+
 test:
 	@echo "Running unit tests."
 	@pytest -p no:warnings

@@ -8,7 +8,8 @@ import dataset
 import random
 import math
 import numpy as np
-from utils import get_all_boxes, multi_bbox_ious, nms, read_data_cfg, logging
+from utils import get_all_boxes, multi_bbox_ious, nms, read_data_cfg
+from nn_logging import logging
 from cfg import parse_cfg
 from darknet import Darknet
 import argparse
@@ -56,7 +57,7 @@ def main():
     init_height  = model.height
 
     kwargs = {'num_workers': num_workers, 'pin_memory': True} if use_cuda else {}
-    
+
     global test_loader
     test_loader = torch.utils.data.DataLoader(
         dataset.listDataset(testlist, shape=(init_width, init_height),
@@ -102,7 +103,7 @@ def test():
             num_gts = truths_length(truths)
             total = total + num_gts
             num_pred = len(boxes)
-     
+
             if num_pred == 0:
                 continue
 
@@ -123,11 +124,11 @@ def test():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', '-d',    type=str, 
+    parser.add_argument('--data', '-d',    type=str,
         default='cfg/sketch.data', help='data definition file')
-    parser.add_argument('--config', '-c',  type=str, 
+    parser.add_argument('--config', '-c',  type=str,
         default='cfg/sketch.cfg', help='network configuration file')
-    parser.add_argument('--weights', '-w', type=str, nargs='+', 
+    parser.add_argument('--weights', '-w', type=str, nargs='+',
         default=['weights/yolov3.weights'], help='initial weights file')
     FLAGS, _ = parser.parse_known_args()
 

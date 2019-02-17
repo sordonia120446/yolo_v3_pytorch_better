@@ -10,7 +10,6 @@ except ModuleNotFoundError:
     from utils import bbox_iou, multi_bbox_ious, convert2cpu
 
 
-
 class YoloLayer(nn.Module):
     def __init__(self, anchor_mask=[], num_classes=0, anchors=[1.0], num_anchors=1, use_cuda=None):
         super(YoloLayer, self).__init__()
@@ -22,7 +21,7 @@ class YoloLayer(nn.Module):
         self.anchors = anchors
         self.num_anchors = num_anchors
         self.anchor_step = len(anchors)//num_anchors
-        self.rescore = 0
+        self.rescore = 1
         self.ignore_thresh = 0.5
         self.truth_thresh = 1.
         self.stride = 32
@@ -54,7 +53,7 @@ class YoloLayer(nn.Module):
 
         nAnchors = nA*nH*nW
         nPixels  = nH*nW
-        nGT = 0
+        nGT = 0  # number of ground truths
         nRecall = 0
         nRecall75 = 0
 
@@ -64,7 +63,7 @@ class YoloLayer(nn.Module):
         for b in range(nB):
             cur_pred_boxes = pred_boxes[b*nAnchors:(b+1)*nAnchors].t()
             cur_ious = torch.zeros(nAnchors)
-            tbox = target[b].view(-1,5).to("cpu")
+            tbox = target[b].view(-1, 5).to("cpu")
             for t in range(50):
                 if tbox[t][1] == 0:
                     break

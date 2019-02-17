@@ -10,6 +10,7 @@ all:
 
 clean:
 	@rm -rf yolo_output/
+	@rm -rf training_logs/
 
 clean-voc:
 	@bash data/pascal_data/clean.sh
@@ -17,18 +18,25 @@ clean-voc:
 detect:
 	@python detect.py cfg/yolo_v3.cfg yolov3.weights data/dog-cycle-car.png data/coco.names
 
+detect-carpk:
+	@echo "Detecting based on weights trained on CARPK data"
+	@python detect.py cfg/carpk.cfg backup/024765.weights 20161225_TPZ_00459.png data/carpk.names
+
 pascal:
 	@bash data/pascal_data/pascal.sh
 
 purge: clean clean-voc
 
+tensorboard:
+	@tensorboard --logdir='./training_logs' --port=6006
+
 train:
 	@echo 'Update training data pathing in the cfg/*.data files'
-	@python train.py -d cfg/voc.data -c cfg/yolo_v3.cfg -w yolov3.weights
+	@python train.py --noeval -d cfg/voc.data -c cfg/yolo_v3.cfg -w yolov3.weights
 
 train-carpk:
 	@echo 'Update training data pathing in the cfg/*.data files'
-	@python train.py -d cfg/carpk.data -c cfg/carpk.cfg -w yolov3.weights
+	@python train.py --noeval -d cfg/carpk.data -c cfg/carpk.cfg -w yolov3.weights
 
 weights:
 	@echo "Getting YOLO v3 weights" && wget https://pjreddie.com/media/files/yolov3.weights yolo_v3/yolov3.weights

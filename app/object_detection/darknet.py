@@ -37,10 +37,12 @@ class Upsample(nn.Module):
         x = x.view(B, C, H, 1, W, 1).expand(B, C, H, hs, W, ws).contiguous().view(B, C, H*hs, W*ws)
         return x
 
+
 class Reorg(nn.Module):
     def __init__(self, stride=2):
         super(Reorg, self).__init__()
         self.stride = stride
+
     def forward(self, x):
         stride = self.stride
         assert(x.data.dim() == 4)
@@ -48,8 +50,8 @@ class Reorg(nn.Module):
         C = x.data.size(1)
         H = x.data.size(2)
         W = x.data.size(3)
-        assert(H % stride == 0)
-        assert(W % stride == 0)
+        assert (H % stride == 0), f'H = {H} not divisible by stride of {stride}'
+        assert (W % stride == 0), f'W = {W} not divisible by stride of {stride}'
         ws = stride
         hs = stride
         x = x.view(B, C, H//hs, hs, W//ws, ws).transpose(3,4).contiguous()
@@ -57,6 +59,7 @@ class Reorg(nn.Module):
         x = x.view(B, C, hs*ws, H//hs, W//ws).transpose(1,2).contiguous()
         x = x.view(B, hs*ws*C, H//hs, W//ws)
         return x
+
 
 class GlobalAvgPool2d(nn.Module):
     def __init__(self):

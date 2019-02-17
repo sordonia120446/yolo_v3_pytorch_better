@@ -17,6 +17,7 @@ import lmdb_utils
 import random
 import math
 from utils import *
+from logging import logging
 from cfg import parse_cfg
 from region_loss import RegionLoss
 from darknet import Darknet
@@ -55,7 +56,7 @@ region_loss = model.loss
 
 model.load_weights(weightfile)
 model.print_network()
-init_epoch = model.seen / nsamples 
+init_epoch = model.seen / nsamples
 
 kwargs = {'num_workers': 8, 'pin_memory': True} if use_cuda else {}
 test_loader = torch.utils.data.DataLoader(
@@ -135,9 +136,9 @@ def test(epoch):
             boxes = nms(boxes, nms_thresh)
             truths = target[i].view(-1, 5)
             num_gts = truths_length(truths)
-     
+
             total = total + num_gts
-    
+
             for i in range(len(boxes)):
                 if boxes[i][4] > conf_thresh:
                     proposals = proposals+1
@@ -161,6 +162,6 @@ if evaluate:
     print('evaluating ...')
     test(0)
 else:
-    for epoch in range(init_epoch, max_epochs): 
+    for epoch in range(init_epoch, max_epochs):
         train(epoch)
         test(epoch)

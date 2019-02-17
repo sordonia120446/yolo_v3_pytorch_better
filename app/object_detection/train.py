@@ -13,16 +13,18 @@ try:
     from app.object_detection import dataset
     from app.object_detection.utils import (
         multi_bbox_ious, nms, get_all_boxes,
-        read_data_cfg, file_lines, logging, savelog
+        read_data_cfg, file_lines,
     )
+    from app.object_detection.nn_logging import logging, savelog, Logger
     from app.object_detection.cfg import parse_cfg
     from app.object_detection.darknet import Darknet
 except ModuleNotFoundError:
     import dataset
     from utils import (
         multi_bbox_ious, nms, get_all_boxes,
-        read_data_cfg, file_lines, logging, savelog
+        read_data_cfg, file_lines,
     )
+    from nn_logging import logging, savelog, Logger
     from cfg import parse_cfg
     from darknet import Darknet
 
@@ -39,6 +41,7 @@ eps           = 1e-5
 keep_backup   = 5
 save_interval = 5  # epoches
 test_interval = 10  # epoches
+tensorboard_logger = Logger(log_dir='./training_logs')
 
 # Test parameters
 evaluate = False
@@ -256,17 +259,20 @@ def train(epoch):
 
         t6 = time.time()
         org_loss = []
+        org_loss_info = {}
         for i, l in enumerate(loss_layers):
             l.seen = l.seen + data.data.size(0)
             ol = l(output[i]['x'], target)
             org_loss.append(ol)
-
+            log_key = f'total_layer_{i}_loss'
+            org_loss_info[log_key] = ol.item()
         t7 = time.time()
 
         #for i, l in enumerate(reversed(org_loss)):
         #    l.backward(retain_graph=True if i < len(org_loss)-1 else False)
         # org_loss.reverse()
         sum(org_loss).backward()
+        org_loss_info['total_model_loss'] = sum(org_loss)
 
         nn.utils.clip_grad_norm_(model.parameters(), 10000)
         #for p in model.parameters():
@@ -276,6 +282,12 @@ def train(epoch):
         optimizer.step()
 
         t9 = time.time()
+
+        if (batch_idx + 1) % 100 == 0:
+            tensorboard_logger.step += 1
+            tensorboard_logger.log_scalars(**org_loss_info)
+            tensorboard_logger.log_named_parameters(model.named_parameters())
+
         # change to True?
         if False and batch_idx > 1:
             avg_time[0] = avg_time[0] + (t2-t1)

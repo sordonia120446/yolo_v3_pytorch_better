@@ -122,6 +122,7 @@ yolov3.weights
 darknet53.conv.74
 yolo_output/
 backup
+training_logs
 
 # Pascal VOC
 *.tar
