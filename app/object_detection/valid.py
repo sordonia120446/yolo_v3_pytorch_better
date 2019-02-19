@@ -1,9 +1,50 @@
+import os
+import struct
+import imghdr
+
 import torch
 from darknet import Darknet
 import dataset
-from torchvision import datasets, transforms
-from utils import get_all_boxes, bbox_iou, nms, get_image_size, read_data_cfg, load_class_names
-import os
+from torchvision import transforms
+
+from utils import get_all_boxes, bbox_iou, nms, read_data_cfg, load_class_names
+
+
+def get_image_size(fname):
+    '''Determine the image type of fhandle and return its size.
+    from draco'''
+    with open(fname, 'rb') as fhandle:
+        head = fhandle.read(24)
+        if len(head) != 24:
+            return
+        if imghdr.what(fname) == 'png':
+            check = struct.unpack('>i', head[4:8])[0]
+            if check != 0x0d0a1a0a:
+                return
+            width, height = struct.unpack('>ii', head[16:24])
+        elif imghdr.what(fname) == 'gif':
+            width, height = struct.unpack('<HH', head[6:10])
+        elif imghdr.what(fname) == 'jpeg' or imghdr.what(fname) == 'jpg':
+            try:
+                fhandle.seek(0) # Read 0xff next
+                size = 2
+                ftype = 0
+                while not 0xc0 <= ftype <= 0xcf:
+                    fhandle.seek(size, 1)
+                    byte = fhandle.read(1)
+                    while ord(byte) == 0xff:
+                        byte = fhandle.read(1)
+                    ftype = ord(byte)
+                    size = struct.unpack('>H', fhandle.read(2))[0] - 2
+                # We are at a SOFn block
+                fhandle.seek(1, 1)  # Skip `precision' byte.
+                height, width = struct.unpack('>HH', fhandle.read(4))
+            except Exception: #IGNORE:W0703
+                return
+        else:
+            return
+        return width, height
+
 
 def valid(datacfg, cfgfile, weightfile, outfile):
     options = read_data_cfg(datacfg)
@@ -15,7 +56,7 @@ def valid(datacfg, cfgfile, weightfile, outfile):
     with open(valid_images) as fp:
         tmp_files = fp.readlines()
         valid_files = [item.rstrip() for item in tmp_files]
-    
+
     m = Darknet(cfgfile)
     m.print_network()
     m.load_weights(weightfile)
@@ -32,7 +73,7 @@ def valid(datacfg, cfgfile, weightfile, outfile):
 
     kwargs = {'num_workers': 4, 'pin_memory': True}
     valid_loader = torch.utils.data.DataLoader(
-        valid_dataset, batch_size=valid_batchsize, shuffle=False, **kwargs) 
+        valid_dataset, batch_size=valid_batchsize, shuffle=False, **kwargs)
 
     fps = [0]*m.num_classes
     if not os.path.exists('results'):
@@ -40,16 +81,16 @@ def valid(datacfg, cfgfile, weightfile, outfile):
     for i in range(m.num_classes):
         buf = '%s/%s%s.txt' % (prefix, outfile, names[i])
         fps[i] = open(buf, 'w')
-   
+
     lineId = -1
-    
+
     conf_thresh = 0.005
     nms_thresh = 0.45
     for _, (data, target) in enumerate(valid_loader):
         data = data.cuda()
         output = m(data)
         batch_boxes = get_all_boxes(output, conf_thresh, m.num_classes, only_objectness=0, validation=True)
-        
+
         for i in range(data.size(0)):
             lineId = lineId + 1
             fileId = os.path.basename(valid_files[lineId]).split('.')[0]

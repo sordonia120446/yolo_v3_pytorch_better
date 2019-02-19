@@ -1,4 +1,6 @@
-# Hacky YOLO V3 with Pytorch
+# YOLO v3 on Pytorch
+
+Pytorch implementation of the YOLO v3 SSD. Detects and trains.
 
 ## Setup
 

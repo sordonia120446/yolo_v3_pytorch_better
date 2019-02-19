@@ -13,6 +13,7 @@ except ModuleNotFoundError:
     from yolo_layer import YoloLayer
 #from layers.batchnorm.bn import BN2d
 
+
 class MaxPoolStride1(nn.Module):
     def __init__(self):
         super(MaxPoolStride1, self).__init__()
@@ -21,10 +22,12 @@ class MaxPoolStride1(nn.Module):
         x = F.max_pool2d(F.pad(x, (0,1,0,1), mode='replicate'), 2, stride=1)
         return x
 
+
 class Upsample(nn.Module):
     def __init__(self, stride=2):
         super(Upsample, self).__init__()
         self.stride = stride
+
     def forward(self, x):
         stride = self.stride
         assert(x.data.dim() == 4)
@@ -74,6 +77,7 @@ class GlobalAvgPool2d(nn.Module):
         x = x.view(N, C)
         return x
 
+
 # for route and shortcut
 class EmptyModule(nn.Module):
     def __init__(self):
@@ -83,6 +87,7 @@ class EmptyModule(nn.Module):
         return x
 
 # support route shortcut and reorg
+
 
 class Darknet(nn.Module):
     def getLossLayers(self):
