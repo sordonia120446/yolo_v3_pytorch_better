@@ -20,7 +20,7 @@ detect:
 
 detect-carpk:
 	@echo "Detecting based on weights trained on CARPK data"
-	@python detect.py cfg/carpk.cfg backup/024765.weights 20161225_TPZ_00459.png data/carpk.names
+	@python detect.py cfg/carpk.cfg carpk.weights 20161225_TPZ_00459.png data/carpk.names
 
 pascal:
 	@bash data/pascal_data/pascal.sh

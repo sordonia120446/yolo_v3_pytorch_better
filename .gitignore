@@ -119,6 +119,7 @@ ENV/
 
 # Project-specific
 yolov3.weights
+carpk.weights
 darknet53.conv.74
 yolo_output/
 backup
