@@ -118,12 +118,12 @@ ENV/
 .mypy_cache/
 
 # Project-specific
-yolov3.weights
-carpk.weights
+*.weights
 darknet53.conv.74
 yolo_output/
 backup
 training_logs
+checkpoint
 
 # Pascal VOC
 *.tar
@@ -136,3 +136,4 @@ voc_train.txt
 # CARPK & PUCPR
 CARPK_devkit/
 PUCPR+_devkit/
+PKLOT_devkit/

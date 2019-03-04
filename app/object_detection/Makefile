@@ -1,4 +1,4 @@
-.PHONY: clean clean-voc detect pascal purge train train-carpk weights
+.PHONY: clean clean-voc detect detect-carpk pascal purge train train-carpk train-pklot weights
 
 all:
 	@echo "make clean - delete yolo_output image folder"
@@ -22,6 +22,10 @@ detect-carpk:
 	@echo "Detecting based on weights trained on CARPK data"
 	@python detect.py cfg/carpk.cfg carpk.weights 20161225_TPZ_00459.png data/carpk.names
 
+detect-pklot:
+	@echo "Detecting based on weights trained on PKLOT data"
+	@python detect.py cfg/pklot.cfg pklot.weights pklot_sample.jpg data/pklot.names
+
 pascal:
 	@bash data/pascal_data/pascal.sh
 
@@ -37,6 +41,10 @@ train:
 train-carpk:
 	@echo 'Update training data pathing in the cfg/*.data files'
 	@python train.py --noeval -d cfg/carpk.data -c cfg/carpk.cfg -w yolov3.weights
+
+train-pklot:
+	@echo 'Update training data pathing in the cfg/*.data files'
+	@python train.py --noeval -d cfg/pklot.data -c cfg/pklot.cfg -w yolov3.weights
 
 weights:
 	@echo "Getting YOLO v3 weights" && wget https://pjreddie.com/media/files/yolov3.weights yolo_v3/yolov3.weights

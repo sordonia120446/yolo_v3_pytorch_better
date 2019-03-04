@@ -1,0 +1,6 @@
+classes = 1
+train  = data/PKLOT_devkit/data/PKLOT_devkit_train.txt
+valid  = data/PKLOT_devkit/data/PKLOT_devkit_test.txt
+names = data/pklot.names
+backup = backup
+gpus  = 0,1,2,3
