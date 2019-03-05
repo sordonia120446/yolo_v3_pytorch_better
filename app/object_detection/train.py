@@ -1,6 +1,7 @@
 import argparse
 import os
 import time
+from collections import OrderedDict
 
 import numpy as np
 import torch
@@ -42,6 +43,7 @@ keep_backup   = 5
 save_interval = 5  # epoches
 test_interval = 10  # epoches
 tensorboard_logger = Logger(log_dir='./training_logs')
+CHECKPOINT_PATH = './checkpoint/params.ckpt'
 
 # Test parameters
 evaluate = False
@@ -54,7 +56,7 @@ no_eval = False
 
 
 # Training settings
-def load_testlist(testlist):
+def load_testlist(testlist, model):
     init_width = model.width
     init_height = model.height
 
@@ -100,11 +102,11 @@ def main():
     globals()["scales"]        = [float(scale) for scale in net_options['scales'].split(',')]
 
     # Train parameters
+    nsamples = file_lines(trainlist)
     global max_epochs
     try:
         max_epochs = int(net_options['max_epochs'])
     except KeyError:
-        nsamples = file_lines(trainlist)
         default_max_epochs = (max_batches*batch_size)//nsamples+1
         max_epochs = int(os.getenv('MAX_EPOCHS', default_max_epochs))
 
@@ -116,30 +118,27 @@ def main():
     global device
     device = torch.device("cuda" if use_cuda else "cpu")
 
+    # instantiate model
+    checkpoint = load_checkpoint()
     global model
     model = Darknet(cfgfile, use_cuda=use_cuda)
     model.load_weights(weightfile)
-    #model.print_network()
+    if checkpoint.get('model_state_dict'):
+        model.load_state_dict(checkpoint.get('model_state_dict'))
+    model.print_network()
 
-    nsamples = file_lines(trainlist)
-    #initialize the model
+    # initialize the model
     if FLAGS.reset:
         model.seen = 0
         init_epoch = 0
     else:
-        init_epoch = model.seen//nsamples
+        curr_epoch = checkpoint.get('epoch')
+        init_epoch = curr_epoch if curr_epoch else model.seen//nsamples
 
     global loss_layers
     loss_layers = model.loss_layers
     for l in loss_layers:
         l.seen = model.seen
-
-    globals()["test_loader"] = load_testlist(testlist)
-    if use_cuda:
-        if ngpus > 1:
-            model = torch.nn.DataParallel(model).to(device)
-        else:
-            model = model.to(device)
 
     params_dict = dict(model.named_parameters())
     params = []
@@ -148,6 +147,7 @@ def main():
             params += [{'params': [value], 'weight_decay': 0.0}]
         else:
             params += [{'params': [value], 'weight_decay': decay*batch_size}]
+
     global optimizer
     optimizer = optim.SGD(
         model.parameters(),
@@ -156,6 +156,18 @@ def main():
         dampening=0,
         weight_decay=decay * batch_size
     )
+    # if checkpoint.get('optimizer_state_dict'):
+        # optimizer.load_state_dict(checkpoint.get('optimizer_state_dict'))
+
+    # need to get model height and width before transferring model to GPU
+    globals()["test_loader"] = load_testlist(testlist, model)
+
+    # load model onto CUDA
+    if use_cuda:
+        if ngpus > 1:
+            model = torch.nn.DataParallel(model).to(device)
+        else:
+            model = model.to(device)
 
     if evaluate:
         logging('evaluating ...')
@@ -273,6 +285,7 @@ def train(epoch):
         # org_loss.reverse()
         sum(org_loss).backward()
         org_loss_info['total_model_loss'] = sum(org_loss)
+        org_loss_info['epoch'] = epoch
 
         nn.utils.clip_grad_norm_(model.parameters(), 10000)
         #for p in model.parameters():
@@ -321,7 +334,34 @@ def train(epoch):
     return nsamples
 
 
+def load_checkpoint():
+    """Mainly useful for resuming training. The weights are the end goal."""
+    checkpoint_path = os.path.join(os.getcwd(), FLAGS.checkpoint)
+    if not os.path.exists(checkpoint_path):
+        logging('no model checkpoint detected')
+        return {}
+    checkpoint = torch.load(checkpoint_path)
+    assert 'epoch' in checkpoint.keys()
+    assert 'model_state_dict' in checkpoint.keys()
+    # assert 'optimizer_state_dict' in checkpoint.keys()
+    # You probably saved the model using nn.DataParallel, which stores the model in module,
+    # and now you are trying to load it without DataParallel.
+    # You can either add a nn.DataParallel temporarily in your network for loading purposes,
+    # or you can load the weights file, create a new ordered dict without the module prefix,
+    # and load it back.
+    valid_model_state_dict = OrderedDict()
+    for key, value in checkpoint['model_state_dict'].items():
+        new_key = '.'.join(key.split('.')[1:]) if 'module.models' in key else key
+        assert new_key.startswith('models')
+        valid_model_state_dict[new_key] = value
+    checkpoint['model_state_dict_original'] = checkpoint['model_state_dict']
+    checkpoint['model_state_dict'] = valid_model_state_dict
+    logging('model checkpoint loaded')
+    return checkpoint
+
+
 def savemodel(epoch, nsamples, curmax=False):
+    """Saves weights and the checkpoint."""
     cur_model = curmodel(model, ngpus=ngpus)
     if curmax:
         logging('save local maximum weights to %s/localmax.weights' % (backupdir))
@@ -337,6 +377,12 @@ def savemodel(epoch, nsamples, curmax=False):
             os.remove(old_wgts)
         except OSError:
             pass
+    logging('saving model checkpoint')
+    torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                # 'optimizer_state_dict': optimizer.state_dict(),
+                }, FLAGS.checkpoint)
 
 
 def test(epoch):
@@ -400,6 +446,8 @@ if __name__ == '__main__':
         action="store_true", default=False, help='initialize the epoch and model seen value')
     parser.add_argument('--localmax', '-l',
         action="store_true", default=False, help='save net weights for local maximum fscore')
+    parser.add_argument('--checkpoint', '-p',
+        default=CHECKPOINT_PATH, help='path to save and load model params')
 
     FLAGS, _ = parser.parse_known_args()
     main()
