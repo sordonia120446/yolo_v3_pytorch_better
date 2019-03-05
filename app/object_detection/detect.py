@@ -1,123 +1,59 @@
-import sys
+import argparse
+import os
 import time
+
+import torch
 from PIL import Image
-from utils import *
+
+from utils import get_all_boxes, image2torch, load_class_names, nms, plot_boxes
 from darknet import Darknet
 
-namesfile = None
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', '-c', help='path to cfg file')
+    parser.add_argument('--weights', '-w', help='path to weights file')
+    parser.add_argument('--names', '-n', help='path to namesfile')
+    parser.add_argument('--imgfiles', '-i', nargs='+', help='path to image')
+    return parser.parse_args()
 
 
-def detect(cfgfile, weightfile, imgfile):
-    m = Darknet(cfgfile)
+def detect(model, img, conf_thresh, nms_thresh, use_cuda):
+    img = image2torch(img)
+    img = img.to(torch.device('cuda' if use_cuda else 'cpu'))
+    out_boxes = model(img)
+    boxes = get_all_boxes(out_boxes, conf_thresh, model.num_classes, use_cuda=use_cuda)[0]
+    return nms(boxes, nms_thresh)
 
-    m.print_network()
-    m.load_weights(weightfile)
-    print('Loading weights from %s... Done!' % (weightfile))
 
-    # if m.num_classes == 20:
-    #     namesfile = 'data/voc.names'
-    # elif m.num_classes == 80:
-    #     namesfile = 'data/coco.names'
-    # else:
-    #     namesfile = 'data/names'
+def main(args):
+    model = Darknet(args.config)
 
-    use_cuda = True
+    model.print_network()
+    model.load_weights(args.weights)
+    print(f'Loading weights from {args.weights}... Done!')
+
+    use_cuda = torch.cuda.is_available()
     if use_cuda:
-        m.cuda()
+        model.cuda()
 
-    img = Image.open(imgfile).convert('RGB')
-    sized = img.resize((m.width, m.height))
+    size = (model.width, model.height)
 
-    #for i in range(2):
+    model.eval()
     start = time.time()
-    # used to be higher confidence threshold and nms threshold
-    # boxes = do_detect(m, sized, 0.5, 0.4, use_cuda)
-    boxes = do_detect(m, sized, 0.25, 0.2, use_cuda)
+    for imgfile in args.imgfiles:
+        img = Image.open(imgfile).convert('RGB').resize(size)
+        # used to be higher confidence threshold and nms threshold
+        # boxes = detect(model, img, 0.5, 0.4, use_cuda)
+        boxes = detect(model, img, 0.25, 0.2, use_cuda)
+        class_names = load_class_names(args.names)
+        savename = f'predicted_{os.path.basename(imgfile)}'
+        plot_boxes(img, boxes, savename, class_names)
+
     finish = time.time()
-        #if i == 1:
-    print('%s: Predicted in %f seconds.' % (imgfile, (finish-start)))
-
-    class_names = load_class_names(namesfile)
-    plot_boxes(img, boxes, 'predictions.jpg', class_names)
-
-
-def detect_cv2(cfgfile, weightfile, imgfile):
-    import cv2
-    m = Darknet(cfgfile)
-
-    m.print_network()
-    m.load_weights(weightfile)
-    print('Loading weights from %s... Done!' % (weightfile))
-
-    if m.num_classes == 20:
-        namesfile = 'data/voc.names'
-    elif m.num_classes == 80:
-        namesfile = 'data/coco.names'
-    else:
-        namesfile = 'data/names'
-
-    use_cuda = True
-    if use_cuda:
-        m.cuda()
-
-    img = cv2.imread(imgfile)
-    sized = cv2.resize(img, (m.width, m.height))
-    sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
-
-    for i in range(2):
-        start = time.time()
-        boxes = do_detect(m, sized, 0.5, 0.4, use_cuda)
-        finish = time.time()
-        if i == 1:
-            print('%s: Predicted in %f seconds.' % (imgfile, (finish-start)))
-
-    class_names = load_class_names(namesfile)
-    plot_boxes_cv2(img, boxes, savename='predictions.jpg', class_names=class_names)
-
-
-def detect_skimage(cfgfile, weightfile, imgfile):
-    from skimage import io
-    from skimage.transform import resize
-    m = Darknet(cfgfile)
-
-    m.print_network()
-    m.load_weights(weightfile)
-    print('Loading weights from %s... Done!' % (weightfile))
-
-    if m.num_classes == 20:
-        namesfile = 'data/voc.names'
-    elif m.num_classes == 80:
-        namesfile = 'data/coco.names'
-    else:
-        namesfile = 'data/names'
-
-    use_cuda = True
-    if use_cuda:
-        m.cuda()
-
-    img = io.imread(imgfile)
-    sized = resize(img, (m.width, m.height)) * 255
-
-    for i in range(2):
-        start = time.time()
-        boxes = do_detect(m, sized, 0.5, 0.4, use_cuda)
-        finish = time.time()
-        if i == 1:
-            print('%s: Predicted in %f seconds.' % (imgfile, (finish-start)))
-
-    class_names = load_class_names(namesfile)
-    plot_boxes_cv2(img, boxes, savename='predictions.jpg', class_names=class_names)
+    print(f'{args.imgfiles}: Predicted in {finish - start} seconds.')
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 5:
-        cfgfile = sys.argv[1]
-        weightfile = sys.argv[2]
-        imgfile = sys.argv[3]
-        globals()["namesfile"] = sys.argv[4]
-        detect(cfgfile, weightfile, imgfile)
-        #detect_cv2(cfgfile, weightfile, imgfile)
-        #detect_skimage(cfgfile, weightfile, imgfile)
-    else:
-        print('Usage: ')
-        print('  python detect.py cfgfile weightfile imgfile names')
+    args = parse_args()
+    main(args)

@@ -259,8 +259,9 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
     return img
 
 
-def plot_boxes(img, boxes, savename=None, class_names=None):
+def plot_boxes(img, boxes, savename, class_names):
     colors = torch.FloatTensor([[1,0,1],[0,0,1],[0,1,1],[0,1,0],[1,1,0],[1,0,0]])
+
     def get_color(c, x, max_val):
         ratio = float(x)/max_val * 5
         i = int(math.floor(ratio))
@@ -281,7 +282,7 @@ def plot_boxes(img, boxes, savename=None, class_names=None):
         y2 = (box[1] + box[3]/2.0) * height
 
         rgb = (255, 0, 0)
-        if len(box) >= 7 and class_names:
+        if len(box) >= 7:
             cls_conf = box[5]
             cls_id = box[6]
             print('%s: %f' % (class_names[cls_id], cls_conf))
@@ -293,9 +294,11 @@ def plot_boxes(img, boxes, savename=None, class_names=None):
             rgb = (red, green, blue)
             draw.text((x1, y1), class_names[cls_id], fill=rgb)
         draw.rectangle([x1, y1, x2, y2], outline=rgb)
+
     if savename:
-        print("save plot results to %s" % savename)
-        img.save(savename)
+        save_path = os.path.join('predictions', savename)
+        img.save(save_path)
+        print(f'saved detection results to {save_path}')
     return img
 
 
@@ -345,33 +348,6 @@ def image2torch(img):
     return img
 
 
-def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=True):
-    model.eval()
-    t0 = time.time()
-    img = image2torch(img)
-    t1 = time.time()
-
-    img = img.to(torch.device("cuda" if use_cuda else "cpu"))
-    t2 = time.time()
-
-    out_boxes = model(img)
-    boxes = get_all_boxes(out_boxes, conf_thresh, model.num_classes, use_cuda=use_cuda)[0]
-
-    t3 = time.time()
-    boxes = nms(boxes, nms_thresh)
-    t4 = time.time()
-
-    if False:
-        print('-----------------------------------')
-        print(' image to tensor : %f' % (t1 - t0))
-        print('  tensor to cuda : %f' % (t2 - t1))
-        print('         predict : %f' % (t3 - t2))
-        print('             nms : %f' % (t4 - t3))
-        print('           total : %f' % (t4 - t0))
-        print('-----------------------------------')
-    return boxes
-
-
 def read_data_cfg(datacfg):
     options = dict()
     options['gpus'] = '0,1,2,3'
@@ -409,5 +385,5 @@ def file_lines(thefilepath):
         if not buffer:
             break
         count += buffer.count(b'\n')
-    thefile.close( )
+    thefile.close()
     return count

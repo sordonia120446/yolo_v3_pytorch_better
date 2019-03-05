@@ -16,15 +16,19 @@ clean-voc:
 	@bash data/pascal_data/clean.sh
 
 detect:
-	@python detect.py cfg/yolo_v3.cfg yolov3.weights data/dog-cycle-car.png data/coco.names
+	@mkdir -p predictions
+	@echo "Detecting based on weights trained on COCO data"
+	@python detect.py -c cfg/yolo_v3.cfg -w yolov3.weights -n data/coco.names -i data/dog-cycle-car.png
 
 detect-carpk:
+	@mkdir -p predictions
 	@echo "Detecting based on weights trained on CARPK data"
-	@python detect.py cfg/carpk.cfg carpk.weights 20161225_TPZ_00459.png data/carpk.names
+	@python detect.py -c cfg/carpk.cfg -w carpk.weights -n data/carpk.names -i 20161225_TPZ_00459.png
 
 detect-pklot:
+	@mkdir -p predictions
 	@echo "Detecting based on weights trained on PKLOT data"
-	@python detect.py cfg/pklot.cfg pklot.weights pklot_sample.jpg data/pklot.names
+	@python detect.py -c cfg/pklot.cfg -w pklot.weights -n data/pklot.names -i pklot_sample.jpg
 
 pascal:
 	@bash data/pascal_data/pascal.sh
