@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument('--weights', '-w', help='path to weights file')
     parser.add_argument('--names', '-n', help='path to namesfile')
     parser.add_argument('--imgfiles', '-i', nargs='+', help='path to image')
+    parser.add_argument('--conf-thresh', '-t', default=0.25, type=float, help='Confidence threshold of object detection')
     return parser.parse_args()
 
 
@@ -45,7 +46,7 @@ def main(args):
         img = Image.open(imgfile).convert('RGB').resize(size)
         # used to be higher confidence threshold and nms threshold
         # boxes = detect(model, img, 0.5, 0.4, use_cuda)
-        boxes = detect(model, img, 0.25, 0.2, use_cuda)
+        boxes = detect(model, img, args.conf_thresh, 0.2, use_cuda)
         class_names = load_class_names(args.names)
         savename = f'predicted_{os.path.basename(imgfile)}'
         plot_boxes(img, boxes, savename, class_names)
