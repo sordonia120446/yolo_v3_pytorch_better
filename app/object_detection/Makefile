@@ -1,4 +1,4 @@
-.PHONY: clean clean-voc detect detect-carpk detect-pklot detect-pucpr pascal purge train train-carpk train-pklot train-pucpr weights
+.PHONY: clean clean-voc detect detect-carpk detect-cnr detect-pklot detect-pucpr pascal purge train train-carpk train-cnr train-pklot train-pucpr weights
 
 all:
 	@echo "make clean - delete yolo_output image folder"
@@ -25,6 +25,11 @@ detect-carpk:
 	@echo "Detecting based on weights trained on CARPK data"
 	@python detect.py -c cfg/carpk.cfg -w carpk.weights -n data/carpk.names -i 20161225_TPZ_00459.png
 
+detect-cnr:
+	@mkdir -p predictions
+	@echo "Detecting based on weights trained on CARPK data"
+	@python detect.py -c cfg/cnr.cfg -w cnr.weights -n data/cnr.names -t 0.05 -i cnr_sample2.jpg
+
 detect-pklot:
 	@mkdir -p predictions
 	@echo "Detecting based on weights trained on PKLOT data"
@@ -50,6 +55,10 @@ train:
 train-carpk:
 	@echo 'Update training data pathing in the cfg/*.data files'
 	@python train.py --noeval -d cfg/carpk.data -c cfg/carpk.cfg -w yolov3.weights
+
+train-cnr:
+	@echo 'Update training data pathing in the cfg/*.data files'
+	@python train.py --noeval -d cfg/cnr.data -c cfg/cnr.cfg -w yolov3.weights
 
 train-pklot:
 	@echo 'Update training data pathing in the cfg/*.data files'
