@@ -124,6 +124,7 @@ yolo_output/
 backup
 training_logs
 checkpoint
+throughput
 
 # Pascal VOC
 *.tar

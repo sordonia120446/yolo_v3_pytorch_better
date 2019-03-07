@@ -1,15 +1,19 @@
-.PHONY: build clean clean-data opencv status test_video
+.PHONY: build clean clean-data clean-tpt opencv status test_video
 
 all: build test_video opencv
 
 build:
 	@docker-compose build
 
-clean: clean-data
+clean: clean-data clean-tpt
 
 clean-data:
 	@rm -rf opencv_data/
 	@rm -rf test_video/
+
+clean-tpt:
+	@rm -rf throughput/
+	make -C app/object_detection clean-tpt
 
 opencv:
 	@docker-compose run -e DEBUG vision python opencv.py -h

@@ -1,8 +1,10 @@
 from unittest import TestCase
 
-from app.object_detection.utils import load_class_names
+from app.object_detection.throughput import track_throughput
 
 
-class UtilsTestCase(TestCase):
-    def test_load_class_names(self):
-        self.assertEquals(1, 1)
+class ThroughputTestCase(TestCase):
+    def test_make_throughput_folder(self):
+        boxes = ['i', 'am', 'a', 'fake', 'box', 'list']
+        predictions_save_path = 'predictions/test_img.jpg'
+        track_throughput(boxes, predictions_save_path)

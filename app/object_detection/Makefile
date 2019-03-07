@@ -1,16 +1,18 @@
-.PHONY: clean clean-voc detect detect-carpk detect-cnr detect-pklot detect-pucpr pascal purge train train-carpk train-cnr train-pklot train-pucpr weights
+.PHONY: clean clean-tpt clean-voc detect detect-carpk detect-cnr detect-pklot detect-pucpr pascal purge skynet train train-carpk train-cnr train-pklot train-pucpr weights
 
 all:
 	@echo "make clean - delete yolo_output image folder"
 	@echo "make clean-voc - delete all VOC data"
 	@echo "make detect - detect an image"
 	@echo "make pascal - download and build the Pascal VOC dataset"
+	@echo "make skynet - detect cars in list of images and print stats"
 	@echo "make train - train on Pascal VOC data"
 	@echo "make weights - get YOLO v3 weights"
 
 clean:
 	@rm -rf yolo_output/
 	@rm -rf training_logs/
+	@rm -rf throughput/
 
 clean-voc:
 	@bash data/pascal_data/clean.sh
@@ -44,6 +46,9 @@ pascal:
 	@bash data/pascal_data/pascal.sh
 
 purge: clean clean-voc
+
+skynet:
+	@bash scripts/end_to_end.sh
 
 tensorboard:
 	@tensorboard --logdir='./training_logs' --port=6006

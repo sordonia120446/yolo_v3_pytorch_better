@@ -6,6 +6,11 @@ import torch
 import numpy as np
 from PIL import Image, ImageDraw
 
+try:
+    from throughput import track_throughput
+except ModuleNotFoundError:
+    from app.object_detection.throughput import track_throughput
+
 
 def sigmoid(x):
     return 1.0/(math.exp(-x)+1.)
@@ -273,7 +278,10 @@ def plot_boxes(img, boxes, savename, class_names):
     width = img.width
     height = img.height
     draw = ImageDraw.Draw(img)
-    print("%d box(es) is(are) found" % len(boxes))
+    if len(boxes) == 1:
+        print(f'{len(boxes)} box found')
+    else:
+        print(f'{len(boxes)} boxes found')
     for i in range(len(boxes)):
         box = boxes[i]
         x1 = (box[0] - box[2]/2.0) * width
@@ -285,7 +293,7 @@ def plot_boxes(img, boxes, savename, class_names):
         if len(box) >= 7:
             cls_conf = box[5]
             cls_id = box[6]
-            print('%s: %f' % (class_names[cls_id], cls_conf))
+            print(f'{class_names[cls_id]}: {cls_conf}')
             classes = len(class_names)
             offset = cls_id * 123457 % classes
             red   = get_color(2, offset, classes)
@@ -295,10 +303,10 @@ def plot_boxes(img, boxes, savename, class_names):
             draw.text((x1, y1), class_names[cls_id], fill=rgb)
         draw.rectangle([x1, y1, x2, y2], outline=rgb)
 
-    if savename:
-        save_path = os.path.join('predictions', savename)
-        img.save(save_path)
-        print(f'saved detection results to {save_path}')
+    save_path = os.path.join('predictions', savename)
+    img.save(save_path)
+    track_throughput(boxes, save_path)
+    print(f'saved detection results to {save_path}')
     return img
 
 
