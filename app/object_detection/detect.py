@@ -1,6 +1,7 @@
 import argparse
 import os
 import time
+import zipfile
 
 import torch
 from PIL import Image
@@ -15,8 +16,36 @@ def parse_args():
     parser.add_argument('--weights', '-w', help='path to weights file')
     parser.add_argument('--names', '-n', help='path to namesfile')
     parser.add_argument('--imgfiles', '-i', nargs='+', help='path to image')
+    parser.add_argument('--zip-imgs', '-z', help='zip file containing image input(s)')
     parser.add_argument('--conf-thresh', '-t', default=0.25, type=float, help='Confidence threshold of object detection')
     return parser.parse_args()
+
+
+def _traverse_image_list(imgfiles):
+    inputs = []
+    for imgfile in args.imgfiles:
+        inputs.append({
+            'filename': imgfile,
+            'image': Image.open(imgfile),
+        })
+    return inputs
+
+
+def _traverse_zip(zip_filepath):
+    inputs = []
+    with zipfile.ZipFile(zip_filepath) as z_f_in:
+        z_f_in.extractall('data')  # hacky but whatever
+    data_dir = os.path.splitext(zip_filepath)[0]
+    for filename in os.listdir(data_dir):
+        basename, ext = os.path.splitext(filename)
+        if ext not in {'.png', '.jpg', '.jpeg', '.JPEG'}:
+            continue
+        img_path = os.path.join(data_dir, filename)
+        inputs.append({
+            'filename': filename,
+            'image': Image.open(img_path),
+        })
+    return inputs
 
 
 def detect(model, img, conf_thresh, nms_thresh, use_cuda):
@@ -40,10 +69,17 @@ def main(args):
 
     size = (model.width, model.height)
 
+    inputs = []
+    if args.zip_imgs:
+        inputs = _traverse_zip(args.zip_imgs)
+    else:
+        inputs = _traverse_image_list(args.imgfiles)
+
     model.eval()
     start = time.time()
-    for imgfile in args.imgfiles:
-        img = Image.open(imgfile).convert('RGB').resize(size)
+    for input_ in inputs:
+        img = input_['image'].convert('RGB').resize(size)
+        imgfile = input_['filename']
         # used to be higher confidence threshold and nms threshold
         # boxes = detect(model, img, 0.5, 0.4, use_cuda)
         boxes = detect(model, img, args.conf_thresh, 0.2, use_cuda)

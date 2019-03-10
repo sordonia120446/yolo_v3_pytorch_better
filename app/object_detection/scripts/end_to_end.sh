@@ -2,11 +2,13 @@
 
 echo "Detecting cars..."
 
+mkdir -p throughput
+
 python detect.py \
     -c cfg/carpk.cfg \
     -w carpk.weights \
     -n data/carpk.names \
-    -i 20161225_TPZ_00459.png carpk_sample.png
+    -z data/cars_same_view.zip
 
 echo -e "\nAnalyzing results\n"
 

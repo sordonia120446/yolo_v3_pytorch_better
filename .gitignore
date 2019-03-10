@@ -125,6 +125,7 @@ backup
 training_logs
 checkpoint
 throughput
+cars_same_view.zip
 
 # Pascal VOC
 *.tar
