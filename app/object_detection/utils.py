@@ -83,6 +83,7 @@ def multi_bbox_ious(boxes1, boxes2, x1y1x2y2=True):
 
 
 def nms(boxes, nms_thresh):
+    """Non-max suppression to score bounding boxes."""
     if len(boxes) == 0:
         return boxes
 

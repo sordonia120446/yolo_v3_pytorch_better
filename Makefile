@@ -31,3 +31,6 @@ test:
 test_video:
 	@docker-compose run -e DEBUG vision bash ./app/opencv/get_test_video.sh
 	@docker-compose run -e DEBUG vision python opencv.py -v test_video/big_buck_bunny.mp4
+
+watch-gpu:
+	make -C app/object_detection watch-gpu

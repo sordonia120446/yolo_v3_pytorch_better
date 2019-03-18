@@ -82,7 +82,7 @@ def main(args):
         imgfile = input_['filename']
         # used to be higher confidence threshold and nms threshold
         # boxes = detect(model, img, 0.5, 0.4, use_cuda)
-        boxes = detect(model, img, args.conf_thresh, 0.2, use_cuda)
+        boxes = detect(model, img, args.conf_thresh, 0.4, use_cuda)
         class_names = load_class_names(args.names)
         savename = f'predicted_{os.path.basename(imgfile)}'
         plot_boxes(img, boxes, savename, class_names)

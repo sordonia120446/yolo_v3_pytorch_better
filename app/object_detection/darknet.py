@@ -308,7 +308,7 @@ class Darknet(nn.Module):
                 out_strides.append(prev_stride)
                 models.append(model)
             elif block['type'] == 'region':
-                region_layer = RegionLayer(use_cuda=self.use_cuda)
+                region_layer = RegionLayer()
                 anchors = block['anchors'].split(',')
                 region_layer.anchors = [float(i) for i in anchors]
                 region_layer.num_classes = int(block['classes'])
