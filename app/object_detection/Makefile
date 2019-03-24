@@ -33,7 +33,7 @@ detect-carpk:
 detect-carpk-v3:
 	@mkdir -p predictions
 	@echo "Detecting based on weights trained on CARPK data and YOLO v3"
-	@python detect.py -c cfg/carpk_v3.cfg -w weights/carpk_v3.weights -n data/carpk.names -t 0.2 -i 20161225_TPZ_00459.png carpk_sample.png
+	@python detect.py -c cfg/carpk_v3.cfg -w weights/carpk_v3.weights -n data/carpk.names -t 0.3 -i 20161225_TPZ_00459.png carpk_sample.png
 
 detect-cnr:
 	@mkdir -p predictions
