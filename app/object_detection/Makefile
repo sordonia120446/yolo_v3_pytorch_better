@@ -9,7 +9,11 @@ all:
 	@echo "make train - train on Pascal VOC data. Update training data pathing in the cfg/*.data files"
 	@echo "make weights - get YOLO v3 weights"
 
-clean: clean-detect clean-training
+clean: clean-detect clean-training clean-tpt
+
+clean-tpt:
+	@rm -rf throughput_data/
+	@mkdir throughput_data/
 
 clean-training:
 	@rm -rf training_logs/

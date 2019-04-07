@@ -2,8 +2,9 @@
 
 echo "Detecting cars..."
 
-mkdir -p throughput
+mkdir -p throughput_data
 
+# TODO change these weights to the actual ones
 python detect.py \
     -c cfg/carpk.cfg \
     -w weights/yolov3.weights \

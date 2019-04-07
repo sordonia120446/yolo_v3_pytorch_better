@@ -13,7 +13,6 @@ clean-data:
 	@rm -rf test_video/
 
 clean-tpt:
-	@rm -rf throughput/
 	make -C app/object_detection clean-tpt
 
 shell:
@@ -26,7 +25,7 @@ tensorboard:
 	make -C app/object_detection tensorboard
 
 test:
-	@echo "Running unit tests."
+	@mkdir -p app/object_detection/throughput_data/
 	@pytest -p no:warnings
 
 watch-gpu:

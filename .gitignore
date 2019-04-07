@@ -124,7 +124,7 @@ yolo_output/
 backup
 training_logs
 checkpoint
-throughput
+throughput_data/
 cars_same_view.zip
 
 # Pascal VOC
