@@ -4,6 +4,7 @@ all: build test_video opencv
 
 build:
 	@docker-compose build
+	@echo "Container built. To install Pytorch, follow README.md instructions."
 
 clean: clean-data clean-tpt
 
@@ -15,8 +16,8 @@ clean-tpt:
 	@rm -rf throughput/
 	make -C app/object_detection clean-tpt
 
-opencv:
-	@docker-compose run -e DEBUG vision python opencv.py -h
+shell:
+	@docker-compose run skynet bash
 
 status:
 	@docker stats --no-stream
@@ -27,10 +28,6 @@ tensorboard:
 test:
 	@echo "Running unit tests."
 	@pytest -p no:warnings
-
-test_video:
-	@docker-compose run -e DEBUG vision bash ./app/opencv/get_test_video.sh
-	@docker-compose run -e DEBUG vision python opencv.py -v test_video/big_buck_bunny.mp4
 
 watch-gpu:
 	make -C app/object_detection watch-gpu

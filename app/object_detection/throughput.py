@@ -6,7 +6,8 @@ import time
 from datetime import datetime
 
 
-throughput_dir = 'throughput'
+working_dir = os.path.dirname(os.path.realpath(__file__))
+throughput_dir = os.path.join(working_dir, 'throughput')
 
 
 def summarize_throughput():

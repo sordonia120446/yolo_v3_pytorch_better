@@ -6,10 +6,10 @@ mkdir -p throughput
 
 python detect.py \
     -c cfg/carpk.cfg \
-    -w carpk.weights \
+    -w weights/yolov3.weights \
     -n data/carpk.names \
     -z data/cars_same_view.zip
 
 echo -e "\nAnalyzing results\n"
 
-python throughput.py
+docker-compose run skynet python /app/app/object_detection/throughput.py

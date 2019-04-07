@@ -1,11 +1,7 @@
 version: '3'
 services:
-  vision:
+  skynet:
     build: .
-    image: "vision:latest"
-    ports:
-     - "3000:3000"
+    image: "skynet:latest"
     volumes:
         - .:/app
-  redis:
-    image: "redis:alpine"

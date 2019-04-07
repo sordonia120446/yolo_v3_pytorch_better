@@ -1,0 +1,38 @@
+# General
+.vscode/
+.DS_Store
+.travis.yml
+*.md
+
+# Python
+env.sh
+venv/
+*.pyc
+__pycache__/
+.pytest_cache/
+
+#### Vim related files
+*.swp
+*.vim
+
+# Project specific
+*.tar
+VOCdevkit/
+savelog.txt
+2007*.txt
+2012*.txt
+voc_train.txt
+CARPK_devkit/
+PUCPR+_devkit/
+PKLOT_devkit/
+PUCPR_devkit/
+CNR_devkit/
+
+*.weights
+darknet53.conv.74
+yolo_output/
+backup/
+checkpoint/
+
+training_logs/
+weights/
