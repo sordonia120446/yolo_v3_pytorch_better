@@ -28,7 +28,7 @@ def _plot_time_series(time_series_stats):
         counts.append(stat['car_count'])
     if plt:
         plt.plot(times, counts, 'bo-')
-        plt.xlabel('Time [Unix]')
+        plt.xlabel('Time [Isoformat]')
         plt.ylabel('Number of Cars')
         plt.title('Car Count over Time')
         plt.savefig(os.path.join(throughput_dir, timeseries_plot))

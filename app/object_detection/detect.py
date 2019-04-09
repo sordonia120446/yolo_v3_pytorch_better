@@ -88,7 +88,7 @@ def main(args):
         plot_boxes(img, boxes, savename, class_names)
 
     finish = time.time()
-    print(f'{args.imgfiles}: Predicted in {finish - start} seconds.')
+    print(f'{args.imgfiles or args.zip_imgs}: Predicted in {finish - start} seconds.')
 
 
 if __name__ == '__main__':
