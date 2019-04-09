@@ -6,8 +6,8 @@ mkdir -p throughput_data
 
 # TODO change these weights to the actual ones
 python detect.py \
-    -c cfg/carpk.cfg \
-    -w weights/yolov3.weights \
+    -c cfg/carpk_v3.cfg \
+    -w weights/carpk_v3_half_size.weights \
     -n data/carpk.names \
     -z data/cars_same_view.zip
 
