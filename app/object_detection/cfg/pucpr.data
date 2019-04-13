@@ -1,6 +1,6 @@
 classes = 1
-train  = data/CARPK_devkit/data/CARPK_devkit_train.txt
-valid  = data/CARPK_devkit/data/CARPK_devkit_test.txt
-names = data/carpk.names
+train  = data/PUCPR_devkit/data/PUCPR_devkit_train.txt
+valid  = data/PUCPR_devkit/data/PUCPR_devkit_test.txt
+names = data/pucpr.names
 backup = backup
 gpus  = 0,1,2,3

@@ -21,6 +21,10 @@ clean-training:
 clean-detect:
 	@rm -rf throughput/
 
+clean-weights:
+	@echo "Removing all weights files in backup saved from training."
+	@rm -f backup/*.weights
+
 clean-voc:
 	@bash data/pascal_data/clean.sh
 
@@ -88,6 +92,9 @@ train-pklot:
 train-pklot-v3:
 	@echo 'Training on YOLO v3 config'
 	@python train.py --noeval -d cfg/pklot.data -c cfg/pklot_v3.cfg -w weights/yolov3.weights -p checkpoint/pklot_v3.ckpt
+
+train-pucpr-v3:
+	@python train.py --noeval -d cfg/pucpr.data -c cfg/pucpr_v3.cfg -w weights/yolov3.weights -p checkpoint/pucpr_v3.ckpt
 
 train-pucpr:
 	@python train.py --noeval -d cfg/pucpr.data -c cfg/pucpr.cfg -w weights/yolov3.weights

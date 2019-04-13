@@ -15,6 +15,9 @@ clean-data:
 clean-tpt:
 	make -C app/object_detection clean-tpt
 
+clean-weights:
+	make -C app/object_detection clean-weights
+
 shell:
 	@docker-compose run skynet bash
 

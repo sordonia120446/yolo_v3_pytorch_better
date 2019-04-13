@@ -18,6 +18,7 @@ def parse_args():
     parser.add_argument('--imgfiles', '-i', nargs='+', help='path to image')
     parser.add_argument('--zip-imgs', '-z', help='zip file containing image input(s)')
     parser.add_argument('--conf-thresh', '-t', default=0.25, type=float, help='Confidence threshold of object detection')
+    parser.add_argument('--nms-thresh', '-m', default=0.3, type=float, help='Non-max suppression threshold')
     return parser.parse_args()
 
 
@@ -82,7 +83,7 @@ def main(args):
         imgfile = input_['filename']
         # used to be higher confidence threshold and nms threshold
         # boxes = detect(model, img, 0.5, 0.4, use_cuda)
-        boxes = detect(model, img, args.conf_thresh, 0.4, use_cuda)
+        boxes = detect(model=model, img=img, conf_thresh=args.conf_thresh, nms_thresh=args.nms_thresh, use_cuda=use_cuda)
         class_names = load_class_names(args.names)
         savename = f'predicted_{os.path.basename(imgfile)}'
         plot_boxes(img, boxes, savename, class_names)

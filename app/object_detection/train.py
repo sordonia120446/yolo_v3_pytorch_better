@@ -272,12 +272,12 @@ def train(epoch):
         t6 = time.time()
         org_loss = []
         org_loss_info = {}
-        for i, l in enumerate(loss_layers):
-            l.seen = l.seen + data.data.size(0)
-            ol = l(output[i]['x'], target)
-            org_loss.append(ol)
-            log_key = f'total_layer_{i}_loss'
-            org_loss_info[log_key] = ol.item()
+        for ind, layer in enumerate(loss_layers):
+            layer.seen = layer.seen + data.data.size(0)
+            output_layer = layer(output[ind]['x'], target)
+            org_loss.append(output_layer)
+            log_key = f'total_layer_{ind}_loss'
+            org_loss_info[log_key] = output_layer.item()
         t7 = time.time()
 
         #for i, l in enumerate(reversed(org_loss)):
