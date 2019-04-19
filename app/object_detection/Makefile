@@ -48,6 +48,11 @@ detect-cnr:
 	@echo "Detecting based on weights trained on CNR data"
 	@python detect.py -c cfg/cnr.cfg -w weights/cnr.weights -n data/cnr.names -t 0.05 -i cnr_sunny.jpg cnr_overcast.jpg cnr_rainy.jpg
 
+detect-cnr-v3:
+	@mkdir -p predictions
+	@echo "Detecting based on weights trained on CNR data"
+	@python detect.py -c cfg/cnr_v3.cfg -w weights/cnr_v3.weights -n data/cnr.names -t 0.1 -i cnr_sunny.jpg cnr_overcast.jpg cnr_rainy.jpg
+
 detect-pklot:
 	@mkdir -p predictions
 	@echo "Detecting based on weights trained on PKLOT data"
@@ -85,6 +90,9 @@ train-carpk-v3:
 
 train-cnr:
 	@python train.py --noeval -d cfg/cnr.data -c cfg/cnr.cfg -p checkpoint/cnr.ckpt -w yolov3.weights
+
+train-cnr-v3:
+	@python train.py --noeval -d cfg/cnr.data -c cfg/cnr_v3.cfg -p checkpoint/cnr_v3.ckpt -w yolov3.weights
 
 train-pklot:
 	@python train.py --noeval -d cfg/pklot.data -c cfg/pklot.cfg -w weights/yolov3.weights
