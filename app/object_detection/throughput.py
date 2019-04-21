@@ -55,6 +55,7 @@ def summarize_throughput():
                     'timestamp': row['timestamp'],
                     'predictions_save_path': row['predictions_save_path'],
                 })
+    time_series_stats.sort(key=lambda x: x['filename'])
     overall_stats = {
         'max_count': max(car_counts),
         'min_count': min(car_counts),
@@ -89,7 +90,7 @@ def track_throughput(boxes, predictions_save_path):
     # track the specific image stats
     base = os.path.splitext(os.path.basename(predictions_save_path))[0]
     unix_time = time.time()
-    logs_path = os.path.join(throughput_dir, f'{base}__{round(unix_time)}.csv')
+    logs_path = os.path.join(throughput_dir, f'{base}.csv')
 
     boxes_stats = {
         'car_count': len(boxes),

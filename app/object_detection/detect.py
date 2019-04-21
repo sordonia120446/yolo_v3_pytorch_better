@@ -37,7 +37,7 @@ def _traverse_zip(zip_filepath):
     data_dir = os.path.splitext(zip_filepath)[0]
     with zipfile.ZipFile(zip_filepath) as z_f_in:
         z_f_in.extractall(data_dir)
-    for filename in os.listdir(data_dir):
+    for filename in sorted(os.listdir(data_dir)):
         basename, ext = os.path.splitext(filename)
         if ext not in {'.png', '.jpg', '.jpeg', '.JPEG'}:
             continue

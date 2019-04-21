@@ -141,3 +141,6 @@ PUCPR+_devkit/
 PKLOT_devkit/
 PUCPR_devkit/
 CNR_devkit/
+
+# Skynet
+app/object_detection/data/*.zip
