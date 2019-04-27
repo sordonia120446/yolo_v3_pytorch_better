@@ -40,6 +40,19 @@ elif [ $TARGET == "cnr-v2" ]; then
         -t 0.1 \
         -n data/cnr.names \
         -z data/sunny_2015_11_12.zip
+elif [ $TARGET == "carpk-4th-wall" ]; then
+    python detect.py \
+        -c cfg/carpk_v3_fourth_wall.cfg \
+        -w weights/fourth_wall_v1.weights \
+        -n data/carpk.names \
+        -z data/carpk_samples.zip
+elif [ $TARGET == "cnr-4th-wall" ]; then
+    python detect.py \
+        -c cfg/cnr_v3_fourth_wall.cfg \
+        -w weights/cnr_v3_fourth_wall.weights \
+        -t 0.25 \
+        -n data/cnr.names \
+        -z data/sunny_2015_11_12.zip
 elif [ $TARGET == "" ]; then
     echo ""
     echo "bruhhhhhhhhhh"

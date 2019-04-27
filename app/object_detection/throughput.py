@@ -24,13 +24,21 @@ def _plot_time_series(time_series_stats):
     times = []
     counts = []
     for stat in time_series_stats:
-        times.append(stat['timestamp'])
+        time = os.path.splitext(stat['filename'])[0].split('_')[-1]
+        times.append(time)
         counts.append(stat['car_count'])
     if plt:
         plt.plot(times, counts, 'bo-')
-        plt.xlabel('Time [Unix]')
+        plt.xticks(times, rotation='vertical')
+        plt.subplots_adjust(bottom=0.2)
+
+        # for CNR data, uncomment this
+        plt.xlabel('Time of Day')
+
+        # for CARPK data, uncomment this
+        # plt.xlabel('Image ID')
+
         plt.ylabel('Number of Cars')
-        plt.title('Car Count over Time')
         plt.savefig(os.path.join(throughput_dir, timeseries_plot))
         # plt.show()  # needs hacks to work with Docker
 
